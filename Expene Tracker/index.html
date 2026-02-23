@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense & Savings Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=6">
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Auth View -->
+        <section id="login-section" class="view active">
+            <div class="card neon-border-blue form-card glassy-login">
+                <div class="login-header">
+                    <h1 class="neon-text-pink">Expense<span class="neon-text-blue">Tracker</span></h1>
+                    <p id="auth-title">Welcome Back</p>
+                </div>
+                <form id="login-form">
+                    <div class="input-group" id="name-group" style="display: none;">
+                        <label for="login-name">Name</label><br>
+                        <input type="text" id="login-name" placeholder="Your Name">
+                    </div>
+                    <div class="input-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required placeholder="name@example.com">
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password" style="display: flex; justify-content: space-between;">
+                            Password
+
+                        </label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                        <lable style="text-align: center;">
+                            <a href="#" id="forgot-password-link"
+                                style="font-size: 0.8em; color: var(--neon-blue); text-decoration: none;">Forgot
+                                Password?</a>
+                        </lable>
+                    </div>
+                    <div id="login-error" class="error-msg" style="display: none;"></div>
+                    <button type="submit" id="auth-submit-btn" class="submit-btn neon-bg-blue">Sign In</button>
+                    <p class="toggle-auth"
+                        style="text-align: center; margin-top: 15px; font-size: 0.9em; color: var(--text-muted, #888);">
+                        <span id="auth-toggle-text">Don't have an account?</span>
+                        <a href="#" id="auth-toggle-link" class="neon-text-pink"
+                            style="text-decoration: none; font-weight: 600;">Sign Up</a>
+                    </p>
+                </form>
+
+                <div class="divider"><span>OR</span></div>
+
+                <button type="button" id="google-login-btn" class="submit-btn google-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                        class="google-icon">
+                    Sign in with Google
+                </button>
+            </div>
+        </section>
+
+        <!-- Forgot Password Modal -->
+        <div id="forgot-password-modal" class="modal hidden">
+            <div class="modal-content card neon-border-blue glassy-login">
+                <span id="close-forgot-modal" class="close-modal">&times;</span>
+                <h2 class="neon-text-blue" style="margin-bottom: 5px;">Reset Password</h2>
+                <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 20px;">Enter your email to receive
+                    a reset link.</p>
+
+                <form id="forgot-password-form">
+                    <div class="input-group">
+                        <label for="reset-email">Email Address</label>
+                        <input type="email" id="reset-email" required placeholder="name@example.com">
+                    </div>
+                    <div id="reset-msg" class="error-msg"
+                        style="display: none; background: rgba(0, 255, 100, 0.1); color: #00ff64; border-color: #00ff64;">
+                    </div>
+                    <div id="reset-error" class="error-msg" style="display: none;"></div>
+                    <button type="submit" id="reset-submit-btn" class="submit-btn neon-bg-blue">Send Reset Link</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Verification View -->
+        <section id="verification-section" class="view" style="display: none;">
+            <div class="card neon-border-blue form-card glassy-login" style="text-align: center;">
+                <div class="login-header">
+                    <h1 class="neon-text-pink">Expense<span class="neon-text-blue">Tracker</span></h1>
+                    <p id="auth-title">Verify Your Email</p>
+                </div>
+                <div style="margin: 20px 0;">
+                    <i data-lucide="mail-check" class="icon-blue"
+                        style="width: 48px; height: 48px; margin-bottom: 15px;"></i>
+                    <p style="color: var(--text-color); font-size: 1.1em; line-height: 1.5;">
+                        We have sent you a verification email to <strong id="verification-email-display"
+                            class="neon-text-pink"></strong>.
+                        Please verify it and log in.
+                    </p>
+                </div>
+                <button type="button" id="verification-login-btn" class="submit-btn neon-bg-blue"
+                    style="margin-top: 20px;">Return to Login</button>
+            </div>
+        </section>
+        <!-- Main App Section -->
+        <div id="app-section" style="display: none; flex-direction: column; gap: 20px;">
+            <header>
+                <div class="header-top">
+                    <h1 class="neon-text-pink">Expense<span class="neon-text-blue">Tracker</span></h1>
+                    <div id="profile-container" class="profile-container">
+                        <span id="profile-name" class="profile-name"></span>
+                        <button id="logout-btn" title="Logout" class="header-logout-btn">
+                            <i data-lucide="log-out" style="width: 20px; height: 20px;"></i>
+                        </button>
+                        <i id="profile-user-icon" data-lucide="user" class="icon-blue"></i>
+                    </div>
+                </div>
+                <p>Expense & Savings Manager</p>
+            </header>
+
+            <nav class="tabs">
+                <button class="tab-btn active neon-btn-blue" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn neon-btn-pink" data-tab="expenses">Expenses</button>
+                <button class="tab-btn neon-btn-blue" data-tab="savings">Savings</button>
+                <button class="tab-btn neon-btn-purple" data-tab="budget">Budget</button>
+                <button class="tab-btn neon-btn-green" data-tab="calendar">Calendar</button>
+            </nav>
+
+            <main id="main-content">
+                <!-- Dashboard View -->
+                <section id="dashboard" class="view active">
+                    <div class="summary-cards">
+                        <div class="card neon-border-pink">
+                            <i data-lucide="wallet" class="icon-pink"></i>
+                            <h3>Total Expenses</h3>
+                            <p class="amount" id="dash-total-expenses">$0.00</p>
+                        </div>
+                        <div class="card neon-border-blue">
+                            <i data-lucide="piggy-bank" class="icon-blue"></i>
+                            <h3>Total Savings</h3>
+                            <p class="amount" id="dash-total-savings">$0.00</p>
+                        </div>
+                    </div>
+
+                    <div class="card neon-border-purple" style="margin-top: 20px;">
+                        <h2><i data-lucide="sparkles" class="icon-purple"></i> AI Insights</h2>
+                        <div id="ai-recommendation-content"
+                            style="padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 10px; color: var(--text-muted); font-size: 1rem; line-height: 1.6;">
+                            Analyze your spending and savings patterns to get personalized, actionable advice to help
+                            you reach your goals faster.
+                        </div>
+                        <button id="get-ai-advice-btn" class="submit-btn neon-bg-purple"
+                            style="color: var(--text-main);">Generate Recommendations</button>
+                    </div>
+                </section>
+
+                <!-- Expenses View -->
+                <section id="expenses" class="view">
+                    <div class="card neon-border-pink form-card">
+                        <h2><i data-lucide="plus-circle" class="icon-pink"></i> Add Expense</h2>
+                        <form id="expense-form">
+                            <div class="input-group">
+                                <label for="exp-desc">Description</label>
+                                <input type="text" id="exp-desc" required placeholder="e.g. Groceries">
+                            </div>
+                            <div class="input-group">
+                                <label for="exp-amount">Amount</label>
+                                <input type="number" id="exp-amount" step="0.01" required placeholder="0.00">
+                            </div>
+                            <div class="input-group">
+                                <label for="exp-category">Category</label>
+                                <select id="exp-category" required
+                                    style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); border-radius: 8px; padding: 12px; color: var(--text-main); font-size: 1rem; outline: none; appearance: none;">
+                                    <option value="Food" style="color: black;">Food</option>
+                                    <option value="Travel" style="color: black;">Travel</option>
+                                    <option value="Rent" style="color: black;">Rent</option>
+                                    <option value="Utilities" style="color: black;">Utilities</option>
+                                    <option value="Entertainment" style="color: black;">Entertainment</option>
+                                    <option value="Other" style="color: black;">Other</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="exp-date">Date</label>
+                                <input type="date" id="exp-date" required>
+                            </div>
+                            <button type="submit" class="submit-btn neon-bg-pink">Add Expense</button>
+                        </form>
+                    </div>
+
+                    <div class="card transparent-card">
+                        <h2>Recent Expenses</h2>
+                        <ul id="expense-list" class="item-list">
+                            <!-- List populated by JS -->
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Savings View -->
+                <section id="savings" class="view">
+                    <div class="card neon-border-blue form-card">
+                        <h2><i data-lucide="target" class="icon-blue"></i> New Savings Goal</h2>
+                        <form id="savings-form">
+                            <div class="input-group">
+                                <label for="sav-name">Goal Name</label>
+                                <input type="text" id="sav-name" required placeholder="e.g. Vacation">
+                            </div>
+                            <div class="input-group">
+                                <label for="sav-target">Target Amount</label>
+                                <input type="number" id="sav-target" step="0.01" required placeholder="0.00">
+                            </div>
+                            <button type="submit" class="submit-btn neon-bg-blue">Create Goal</button>
+                        </form>
+                    </div>
+
+                    <div class="card transparent-card">
+                        <h2>Your Goals</h2>
+                        <ul id="savings-list" class="goal-list">
+                            <!-- Goals populated by JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Modal for adding funds to a goal -->
+                    <div id="add-funds-modal" class="modal hidden">
+                        <div class="modal-content card neon-border-blue">
+                            <span class="close-modal">&times;</span>
+                            <h2>Add Funds to <span id="modal-goal-name"></span></h2>
+                            <form id="add-funds-form">
+                                <input type="hidden" id="modal-goal-id">
+                                <div class="input-group">
+                                    <label for="fund-amount">Amount to Add</label>
+                                    <input type="number" id="fund-amount" step="0.01" required placeholder="0.00">
+                                </div>
+                                <button type="submit" class="submit-btn neon-bg-blue">Add Funds</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Budget View -->
+                <section id="budget" class="view">
+                    <div class="card neon-border-purple form-card">
+                        <h2><i data-lucide="pie-chart" class="icon-purple"></i> Budget Planning</h2>
+                        <form id="budget-form">
+                            <div class="input-group">
+                                <label for="budget-salary">Monthly Salary / Income</label>
+                                <input type="number" id="budget-salary" step="0.01" required placeholder="0.00">
+                            </div>
+                            <div class="input-group">
+                                <label for="budget-monthly">Overall Monthly Budget</label>
+                                <input type="number" id="budget-monthly" step="0.01" required placeholder="0.00">
+                            </div>
+
+                            <h3 style="margin-top: 15px; margin-bottom: 10px; color: var(--text-muted);">Category
+                                Budgets (Optional)</h3>
+                            <div class="budget-categories-grid">
+                                <div class="input-group">
+                                    <label for="budget-food">Food</label>
+                                    <input type="number" id="budget-food" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="input-group">
+                                    <label for="budget-travel">Travel</label>
+                                    <input type="number" id="budget-travel" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="input-group">
+                                    <label for="budget-rent">Rent</label>
+                                    <input type="number" id="budget-rent" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="input-group">
+                                    <label for="budget-utilities">Utilities</label>
+                                    <input type="number" id="budget-utilities" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="input-group">
+                                    <label for="budget-entertainment">Entertainment</label>
+                                    <input type="number" id="budget-entertainment" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="input-group">
+                                    <label for="budget-other">Other</label>
+                                    <input type="number" id="budget-other" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 15px; margin-top: 10px;">
+                                <button type="button" id="reset-budget-btn" class="submit-btn"
+                                    style="background: transparent; border: 1px solid var(--text-muted); color: var(--text-main);">Reset</button>
+                                <button type="submit" class="submit-btn neon-bg-purple" style="margin-top: 0;">Update
+                                    Budget</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="budget-warnings-container" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Warnings populated by JS -->
+                    </div>
+
+                    <div class="card transparent-card" style="margin-top: 20px;">
+                        <h2>Budget vs Actual</h2>
+                        <div
+                            style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                            <canvas id="budgetChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Calendar View -->
+                <section id="calendar" class="view">
+                    <div class="card neon-border-green form-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2><i data-lucide="calendar" class="icon-green"></i> Activity Heatmap</h2>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <button id="prev-month-btn" class="icon-btn"><i data-lucide="chevron-left"></i></button>
+                                <span id="current-month-display"
+                                    style="font-weight: 600; font-size: 1.1rem; min-width: 120px; text-align: center;">Month
+                                    Year</span>
+                                <button id="next-month-btn" class="icon-btn"><i
+                                        data-lucide="chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="heatmap-calendar" id="heatmap-calendar">
+                            <!-- Generated by JS -->
+                        </div>
+
+                        <div class="heatmap-legend">
+                            <span>Less Spend</span>
+                            <div class="legend-cell"></div>
+                            <div class="legend-cell level-1"></div>
+                            <div class="legend-cell level-2"></div>
+                            <div class="legend-cell level-3"></div>
+                            <div class="legend-cell level-4"></div>
+                            <span>More Spend</span>
+                        </div>
+                    </div>
+
+                    <div class="card transparent-card" id="daily-expenses-card"
+                        style="display: none; margin-top: 20px;">
+                        <h2><i data-lucide="list" class="icon-green"></i> Expenses for <span id="selected-date-display"
+                                class="neon-text-green">...</span></h2>
+                        <h3 id="daily-total-display"
+                            style="color: var(--text-muted); margin-bottom: 15px; font-weight: normal;">Total: $0.00
+                        </h3>
+                        <ul id="daily-expense-list" class="item-list">
+                            <!-- List populated by JS -->
+                        </ul>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Floating Social Menu -->
+            <div class="social-menu-container" id="social-menu" style="display: none;">
+                <!-- Sidebar Overlay -->
+                <div class="social-overlay"></div>
+
+                <div class="social-links">
+                    <a href="https://instagram.com/_.subash_11.__" target="_blank" class="social-btn twitter"
+                        title="Instagram">
+                        <i data-lucide="instagram"></i>
+                    </a>
+                    <a href="https://linkedin.com/in/subash11rc" target="_blank" class="social-btn linkedin"
+                        title="LinkedIn">
+                        <i data-lucide="linkedin"></i>
+                    </a>
+                    <a href="https://github.com/ArcSubash" target="_blank" class="social-btn github" title="GitHub">
+                        <i data-lucide="github"></i>
+                    </a>
+                </div>
+
+                <button id="social-menu-toggle" class="social-toggle-btn neon-bg-blue" title="Connect">
+                    <i data-lucide="link"></i>
+                </button>
+            </div>
+
+            <!-- Logout Confirmation Modal -->
+            <div id="logout-confirm-modal" class="modal hidden">
+                <div class="modal-content card neon-border-pink">
+                    <h2 class="neon-text-pink" style="margin-bottom: 15px; text-align: center;">Confirm Logout</h2>
+                    <p style="text-align: center; color: var(--text-muted); margin-bottom: 25px;">Are you sure you
+                        want
+                        to
+                        log out?</p>
+                    <div style="display: flex; gap: 15px;">
+                        <button id="cancel-logout-btn" class="submit-btn"
+                            style="background: transparent; border: 1px solid var(--text-muted); color: var(--text-main);">Cancel</button>
+                        <button id="confirm-logout-btn" class="submit-btn neon-bg-pink">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script type="module" src="app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
