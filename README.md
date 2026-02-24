@@ -17,6 +17,6 @@ For backend and database I've used Google's firebase and for hosting I've used c
 
 In app.js replace the firebase config with your firebase's cofig details to check it your self
 
-And do check out the site: http://exptrack.subash11rc.workers.dev
+And do check out the site: https://exptrack.subash11rc.workers.dev
 
 
